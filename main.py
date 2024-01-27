@@ -4,6 +4,9 @@ from data import books, movies
 from helpers.getBookHandler import get_book
 from helpers.updateListWithNewItem import update_list
 from helpers.info import endpoints_info
+from helpers.process_file import process_file
+from urllib.parse import unquote
+import os
 
 class SimpleHandler(SimpleHTTPRequestHandler):
     def _send_response(self, message, status=200):
@@ -73,6 +76,26 @@ class SimpleHandler(SimpleHTTPRequestHandler):
                     json.dumps({'updated list': updated_list}))
             except json.JSONDecodeError:
                 self._send_response('Error: Invalid JSON data received in the POST request.', status=400)
+
+        if self.path.startswith('/process_file/'):
+            try:
+                _, _, filename, search_string = self.path.split('/')
+                filename = unquote(filename)
+                search_string = unquote(search_string)
+
+                dir_path = os.path.dirname(os.path.realpath(__file__))
+                file_path = os.path.join(dir_path, 'assets', filename)
+
+                print(f'File path: {file_path}')  
+
+                if not os.path.exists(file_path):
+                    self._send_response('Error: File does not exist.', status=400)
+                    return
+                print(f'Search string: {search_string}')
+                metadata = process_file(file_path, search_string)
+                self._send_response(json.dumps(metadata))
+            except Exception as e:
+                self._send_response(f'Error: {str(e)}', status=500)
 
 
 def run_server(port=8000):
