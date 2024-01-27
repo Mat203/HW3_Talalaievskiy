@@ -5,7 +5,9 @@ from helpers.getBookHandler import get_book
 from helpers.updateListWithNewItem import update_list
 from helpers.info import endpoints_info
 from helpers.process_file import process_file
-from urllib.parse import unquote
+from helpers.parse_url import parse_url
+from helpers.validate_url import validate_url
+from urllib.parse import unquote, urlparse, parse_qs
 import os
 
 class SimpleHandler(SimpleHTTPRequestHandler):
@@ -94,6 +96,21 @@ class SimpleHandler(SimpleHTTPRequestHandler):
                 print(f'Search string: {search_string}')
                 metadata = process_file(file_path, search_string)
                 self._send_response(json.dumps(metadata))
+            except Exception as e:
+                self._send_response(f'Error: {str(e)}', status=500)
+
+        if self.path.startswith('/parse_link/'):
+            try:
+                _, _, encoded_url = self.path.split('/',2)
+                
+                url = unquote(encoded_url)
+                errors = validate_url(url)
+
+                if errors:
+                    self._send_response(f'Error: Invalid URL. {" ".join(errors)}', status=400)
+                    
+                response, status = parse_url(url)
+                self._send_response(response, status=status)
             except Exception as e:
                 self._send_response(f'Error: {str(e)}', status=500)
 
