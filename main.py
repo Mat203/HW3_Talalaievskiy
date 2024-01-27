@@ -7,6 +7,7 @@ from helpers.info import endpoints_info
 from helpers.process_file import process_file
 from helpers.parse_url import parse_url
 from helpers.validate_url import validate_url
+from helpers.read_image import read_image
 from urllib.parse import unquote, urlparse, parse_qs
 import os
 
@@ -53,6 +54,24 @@ class SimpleHandler(SimpleHTTPRequestHandler):
         elif self.path.startswith('/books?'):
             book = get_book(self.path)
             self._send_response(json.dumps(book))
+
+        elif self.path.startswith('/images/'):
+            try:
+                _, _, filename = self.path.split('/')
+                dir_path = os.path.dirname(os.path.realpath(__file__))
+                file_path = os.path.join(dir_path, 'assets','images', filename)
+
+                if not os.path.exists(file_path):
+                    self.send_error(404, 'File Not Found: %s' % file_path)
+                    return
+
+                image_data = read_image(file_path)
+                self.send_response(200)
+                self.send_header('Content-type', 'image/png')
+                self.end_headers()
+                self.wfile.write(image_data)
+            except Exception as e:
+                self.send_error(500, 'Server Error: %s' % str(e))
 
         else:
             self._send_response('not found', status=404)
@@ -108,7 +127,7 @@ class SimpleHandler(SimpleHTTPRequestHandler):
 
                 if errors:
                     self._send_response(f'Error: Invalid URL. {" ".join(errors)}', status=400)
-                    
+
                 response, status = parse_url(url)
                 self._send_response(response, status=status)
             except Exception as e:

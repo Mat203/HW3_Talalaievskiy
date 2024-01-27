@@ -45,6 +45,21 @@ endpoints_info = {
       "path": "/add",
       "method": "POST",
       "description": "Add data via POST request and receive an updated list. attach json in body of request",
+    },
+    {
+      "path": "/process_file",
+      "method": "POST",
+      "description": "Process text file and find the number of occurences in string",
+    },
+    {
+      "path": "/parse_link",
+      "method": "POST",
+      "description": "Parses link and sends the info about the link",
+    },
+    {
+      "path": "/image",
+      "method": "GET",
+      "description": "Sends an image",
     }
   ]
 }

@@ -6,7 +6,6 @@ import os
 
 
 def parse_url(url):
-
         parsed_url = urlparse(url)
         protocol = parsed_url.scheme
         domain = parsed_url.netloc
